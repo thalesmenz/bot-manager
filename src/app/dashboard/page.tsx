@@ -7,8 +7,9 @@ import { authService } from '@/services/auth.service';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Robot, SpinnerGap, QrCode } from '@phosphor-icons/react';
+import { Robot, SpinnerGap, QrCode, Brain } from '@phosphor-icons/react';
 import { CreateBotModal } from '@/components/CreateBotModal';
+import { QRCodeCanvas } from 'qrcode.react';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -136,30 +137,32 @@ export default function Dashboard() {
         <CardHeader className="flex flex-row items-center justify-between bg-white rounded-t-lg">
           <div className="flex items-center gap-4">
             <Robot size={32} className="text-blue-600" />
-            <div>
-              <CardTitle className="text-gray-800">{bot.name}</CardTitle>
-              <Badge 
-                variant={bot.status === 'active' ? 'default' : 'secondary'}
-                className={bot.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}
-              >
-                {bot.status === 'active' ? 'Ativo' : 'Inativo'}
-              </Badge>
-            </div>
+            <CardTitle className="text-gray-800">Gerenciamento do Bot</CardTitle>
           </div>
-          <Button
-            variant={bot.status === 'active' ? 'destructive' : 'default'}
-            onClick={handleToggleBotStatus}
-            disabled={loading}
-            className={bot.status === 'active' ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700'}
-          >
-            {loading ? (
-              <SpinnerGap size={16} className="animate-spin" />
-            ) : bot.status === 'active' ? (
-              'Desativar Bot'
-            ) : (
-              'Ativar Bot'
-            )}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={() => router.push('/dashboard/training')}
+              className="bg-white"
+            >
+              <Brain className="w-4 h-4 mr-2" />
+              Treinar Bot
+            </Button>
+            <Button
+              variant={bot.status === 'active' ? 'destructive' : 'default'}
+              onClick={handleToggleBotStatus}
+              disabled={loading}
+              className={bot.status === 'active' ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700'}
+            >
+              {loading ? (
+                <SpinnerGap size={16} className="animate-spin" />
+              ) : bot.status === 'active' ? (
+                'Desativar Bot'
+              ) : (
+                'Ativar Bot'
+              )}
+            </Button>
+          </div>
         </CardHeader>
       </Card>
 
@@ -183,16 +186,26 @@ export default function Dashboard() {
                 </div>
               ) : qrCode ? (
                 <>
-                  <div className="bg-white p-4 rounded-lg shadow-sm">
+                  <div className="bg-white p-4 rounded-lg shadow">
                     <img 
-                      src={qrCode} 
-                      alt="QR Code para conectar WhatsApp" 
-                      className="w-64 h-64"
+                      src={qrCode.startsWith('data:') ? qrCode : `data:image/png;base64,${qrCode}`}
+                      alt="QR Code para conexão do WhatsApp"
+                      className="w-64 h-64 object-contain mx-auto"
+                      style={{ 
+                        maxWidth: '100%',
+                        height: 'auto',
+                        backgroundColor: 'white'
+                      }}
                     />
                   </div>
-                  <p className="text-gray-600 text-center">
-                    Escaneie este QR Code com o WhatsApp para conectar seu bot
-                  </p>
+                  <div className="text-center space-y-2">
+                    <p className="text-gray-600">
+                      Escaneie este QR Code com o WhatsApp para conectar seu bot
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      Se o QR Code expirar ou der erro ao escanear, aguarde que um novo será gerado automaticamente
+                    </p>
+                  </div>
                 </>
               ) : (
                 <p className="text-gray-600 text-center">

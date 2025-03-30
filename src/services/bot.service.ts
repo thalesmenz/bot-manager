@@ -48,13 +48,23 @@ class BotService {
   }
 
   async updateBotStatus(status: 'active' | 'inactive'): Promise<Bot> {
-    const bot = await this.getBot();
-    if (!bot) {
-      throw new Error('Bot não encontrado');
-    }
+    try {
+      const bot = await this.getBot();
+      if (!bot) {
+        throw new Error('Bot não encontrado');
+      }
 
-    const response = await api.put<Bot>(`/api/bots/${bot.id}/status`, { status });
-    return response.data;
+      console.log('Atualizando status do bot:', { botId: bot.id, status });
+      const response = await api.put<Bot>(`/api/bots/${bot.id}/status`, { status });
+      console.log('Resposta da atualização:', response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error('Erro ao atualizar status do bot:', error);
+      if (error.response) {
+        throw new Error(error.response.data.error || 'Erro ao atualizar status do bot');
+      }
+      throw new Error('Erro ao comunicar com o servidor');
+    }
   }
 
   async getBotStatus(): Promise<BotStatus> {
@@ -82,6 +92,26 @@ class BotService {
       return response.data;
     } catch (error) {
       console.error('Erro ao obter QR code:', error);
+      throw error;
+    }
+  }
+
+  async updateBotObjectives(objectives: string) {
+    try {
+      const response = await api.put('/bot/objectives', { objectives });
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao atualizar objetivos do bot:', error);
+      throw error;
+    }
+  }
+
+  async updateBotTrainingKey(trainingKey: string) {
+    try {
+      const response = await api.put('/bot/training-key', { trainingKey });
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao atualizar chave de treinamento:', error);
       throw error;
     }
   }
