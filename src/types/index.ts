@@ -1,0 +1,19 @@
+export interface Bot {
+  id: string;
+  name: string;
+  status: 'active' | 'inactive';
+  user_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SocketEvents {
+  botStatusChanged: {
+    userId: string;
+    status: 'active' | 'inactive';
+  };
+  qrCodeGenerated: {
+    userId: string;
+    qrcode: string;
+  };
+} 
