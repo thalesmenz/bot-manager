@@ -1,113 +1,178 @@
 'use client'
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Brain, SpinnerGap } from '@phosphor-icons/react';
-import { botService } from '@/services/bot.service';
-import { authService } from '@/services/auth.service';
+import { useState } from 'react';
+import { Brain, Upload, FileText, Trash2, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
-export default function Training() {
-  const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [trainingData, setTrainingData] = useState('');
+export default function TrainingPage() {
+  const [isTraining, setIsTraining] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [files, setFiles] = useState<File[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      if (!authService.isAuthenticated()) {
-        router.push('/login');
-        return;
-      }
-      loadBot();
-    };
-
-    checkAuth();
-  }, [router]);
-
-  const loadBot = async () => {
-    try {
-      setLoading(true);
-      await botService.getBot();
-    } catch (err) {
-      setError('Erro ao carregar informações do bot');
-      console.error('Erro ao carregar bot:', err);
-    } finally {
-      setLoading(false);
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files) {
+      setFiles(Array.from(event.target.files));
     }
   };
 
-  const handleSave = async () => {
-    try {
-      setSaving(true);
-      // TODO: Implementar o envio dos dados de treinamento
-      router.push('/dashboard');
-    } catch (err) {
-      setError('Erro ao salvar informações');
-      console.error('Erro ao salvar:', err);
-    } finally {
-      setSaving(false);
+  const handleStartTraining = async () => {
+    setIsTraining(true);
+    // Simular progresso do treinamento
+    for (let i = 0; i <= 100; i += 10) {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      setProgress(i);
     }
+    setIsTraining(false);
   };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <SpinnerGap size={32} className="animate-spin text-blue-600" />
-      </div>
-    );
-  }
 
   return (
-    <div className="container mx-auto p-6 space-y-6 bg-gray-50 min-h-screen">
-      <Card className="border-0 shadow-md">
-        <CardHeader className="flex flex-row items-center justify-between bg-white rounded-t-lg">
-          <div className="flex items-center gap-4">
-            <Brain size={32} className="text-blue-600" />
-            <CardTitle className="text-gray-800">Treinamento do Bot</CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-6 pt-6">
-          {error && (
-            <div className="bg-red-50 text-red-600 p-4 rounded-lg">
-              {error}
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-primary">Treinamento do Bot</h1>
+          <p className="text-muted-foreground">Treine seu bot com dados personalizados</p>
+        </div>
+        <Button
+          onClick={handleStartTraining}
+          disabled={isTraining || files.length === 0}
+          className="bg-primary hover:bg-primary/90 text-primary-foreground hover-glow"
+        >
+          {isTraining ? (
+            <div className="flex items-center">
+              <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin mr-2" />
+              Treinando... {progress}%
             </div>
+          ) : (
+            <>
+              <Brain className="w-4 h-4 mr-2" />
+              Iniciar Treinamento
+            </>
           )}
+        </Button>
+      </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">Dados de Treinamento</label>
-            <Textarea
-              placeholder="Insira exemplos de conversas, respostas esperadas..."
-              value={trainingData}
-              onChange={(e) => setTrainingData(e.target.value)}
-              className="min-h-[200px]"
-            />
-            <p className="text-sm text-gray-500">
-              Forneça exemplos de conversas e respostas para treinar seu bot.
-            </p>
+      {/* Upload Section */}
+      <Card className="card-dark glass-effect card-hover">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-primary">
+            <Upload className="w-5 h-5" />
+            Upload de Dados
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
+              <input
+                type="file"
+                multiple
+                onChange={handleFileUpload}
+                className="hidden"
+                id="file-upload"
+              />
+              <label
+                htmlFor="file-upload"
+                className="cursor-pointer flex flex-col items-center"
+              >
+                <Upload className="w-12 h-12 text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">
+                  Arraste e solte seus arquivos aqui ou{' '}
+                  <span className="text-primary">clique para selecionar</span>
+                </p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Formatos suportados: PDF, TXT, DOCX
+                </p>
+              </label>
+            </div>
+
+            {files.length > 0 && (
+              <div className="space-y-2">
+                <h3 className="text-sm font-medium text-muted-foreground">
+                  Arquivos selecionados ({files.length})
+                </h3>
+                <div className="space-y-2">
+                  {files.map((file, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-3 bg-accent rounded-lg"
+                    >
+                      <div className="flex items-center gap-3">
+                        <FileText className="w-5 h-5 text-muted-foreground" />
+                        <div>
+                          <p className="text-sm font-medium text-foreground">
+                            {file.name}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {(file.size / 1024).toFixed(2)} KB
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setFiles(files.filter((_, i) => i !== index))}
+                        className="p-1 hover:bg-destructive/10 rounded-full text-destructive"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
+        </CardContent>
+      </Card>
 
-          <div className="flex justify-end gap-4 pt-4">
-            <Button
-              variant="outline"
-              onClick={() => router.push('/dashboard')}
-              className="bg-white"
-            >
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleSave}
-              disabled={saving}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              {saving ? (
-                <SpinnerGap size={16} className="animate-spin mr-2" />
-              ) : null}
-              Salvar Treinamento
-            </Button>
+      {/* Training Status */}
+      <Card className="card-dark glass-effect card-hover">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-primary">
+            <Brain className="w-5 h-5" />
+            Status do Treinamento
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+                <CheckCircle2 className="w-6 h-6 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-medium text-foreground">Último Treinamento</h3>
+                <p className="text-sm text-muted-foreground">
+                  Concluído em 15/03/2024 às 14:30
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-accent flex items-center justify-center">
+                <AlertCircle className="w-6 h-6 text-muted-foreground" />
+              </div>
+              <div>
+                <h3 className="font-medium text-foreground">Próximo Treinamento</h3>
+                <p className="text-sm text-muted-foreground">
+                  Agendado para 20/03/2024 às 00:00
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <div className="p-4 bg-accent rounded-lg">
+                <p className="text-sm text-muted-foreground">Dados Processados</p>
+                <p className="text-2xl font-bold text-primary">1.2GB</p>
+              </div>
+              <div className="p-4 bg-accent rounded-lg">
+                <p className="text-sm text-muted-foreground">Tempo Médio</p>
+                <p className="text-2xl font-bold text-primary">45min</p>
+              </div>
+              <div className="p-4 bg-accent rounded-lg">
+                <p className="text-sm text-muted-foreground">Precisão</p>
+                <p className="text-2xl font-bold text-primary">98%</p>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>

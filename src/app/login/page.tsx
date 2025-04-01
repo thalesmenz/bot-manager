@@ -7,6 +7,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { authService } from '@/services/auth.service';
+import { Loader2 } from 'lucide-react';
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -51,15 +52,21 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center px-4">
-      <div className="max-w-md w-full space-y-8 bg-gray-800 p-8 rounded-lg shadow-xl">
+    <div className="min-h-screen bg-background flex items-center justify-center px-4">
+      <div className="max-w-md w-full space-y-8 glass-effect p-8 rounded-lg card-hover">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-white">
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-primary">
             Entre na sua conta
           </h2>
+          <p className="mt-2 text-center text-sm text-muted-foreground">
+            Ou{' '}
+            <a href="#" className="font-medium text-primary hover:text-primary/90">
+              crie uma nova conta
+            </a>
+          </p>
         </div>
         {error && (
-          <div className="bg-red-500/10 border border-red-500 text-red-500 px-4 py-2 rounded">
+          <div className="bg-destructive/10 border border-destructive text-destructive px-4 py-2 rounded">
             {error}
           </div>
         )}
@@ -69,7 +76,7 @@ export default function LoginPage() {
           </div>
         )}
         <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
-          <div className="rounded-md shadow-sm space-y-4">
+          <div className="rounded-md shadow-sm -space-y-px">
             <div>
               <label htmlFor="email" className="sr-only">
                 Email
@@ -77,13 +84,13 @@ export default function LoginPage() {
               <input
                 {...register('email')}
                 id="email"
+                name="email"
                 type="email"
-                className="appearance-none rounded-lg relative block w-full px-3 py-2 border border-gray-700 bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                autoComplete="email"
+                required
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-border bg-accent text-foreground placeholder-muted-foreground rounded-t-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
                 placeholder="Email"
               />
-              {errors.email && (
-                <p className="mt-1 text-sm text-red-500">{errors.email.message}</p>
-              )}
             </div>
             <div>
               <label htmlFor="password" className="sr-only">
@@ -92,13 +99,13 @@ export default function LoginPage() {
               <input
                 {...register('password')}
                 id="password"
+                name="password"
                 type="password"
-                className="appearance-none rounded-lg relative block w-full px-3 py-2 border border-gray-700 bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                autoComplete="current-password"
+                required
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-border bg-accent text-foreground placeholder-muted-foreground rounded-b-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
                 placeholder="Senha"
               />
-              {errors.password && (
-                <p className="mt-1 text-sm text-red-500">{errors.password.message}</p>
-              )}
             </div>
           </div>
 
@@ -106,17 +113,21 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary hover-glow"
             >
-              {isLoading ? 'Entrando...' : 'Entrar'}
+              {isLoading ? (
+                <Loader2 size={20} className="animate-spin" />
+              ) : (
+                'Entrar'
+              )}
             </button>
           </div>
         </form>
 
         <div className="text-center">
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-muted-foreground">
             Não tem uma conta?{' '}
-            <Link href="/register" className="font-medium text-blue-400 hover:text-blue-300">
+            <Link href="/register" className="font-medium text-primary hover:text-primary/90">
               Cadastre-se
             </Link>
           </p>
