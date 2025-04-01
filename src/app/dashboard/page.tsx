@@ -8,8 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Robot, SpinnerGap, QrCode, Brain } from '@phosphor-icons/react';
-import { CreateBotModal } from '@/components/CreateBotModal';
-import { QRCodeCanvas } from 'qrcode.react';
+import { QRCodeCard } from '@/components/dashboard/QRCodeCard';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -18,7 +17,6 @@ export default function Dashboard() {
   const [loadingQRCode, setLoadingQRCode] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [qrCode, setQrCode] = useState<string | null>(null);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -79,6 +77,19 @@ export default function Dashboard() {
     }
   };
 
+  const handleCreateBot = async () => {
+    try {
+      setLoading(true);
+      const newBot = await botService.createBot();
+      setBot(newBot);
+    } catch (err) {
+      setError('Erro ao criar bot');
+      console.error('Erro ao criar bot:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
@@ -110,22 +121,17 @@ export default function Dashboard() {
               Você ainda não tem um bot configurado. Crie seu primeiro bot para começar!
             </p>
             <Button 
-              onClick={() => setIsCreateModalOpen(true)}
+              onClick={handleCreateBot}
+              disabled={loading}
               className="bg-blue-600 hover:bg-blue-700 text-white"
             >
+              {loading ? (
+                <SpinnerGap size={16} className="animate-spin mr-2" />
+              ) : null}
               Criar Bot
             </Button>
           </CardContent>
         </Card>
-
-        <CreateBotModal
-          isOpen={isCreateModalOpen}
-          onClose={() => setIsCreateModalOpen(false)}
-          onBotCreated={(newBot) => {
-            setBot(newBot);
-            setIsCreateModalOpen(false);
-          }}
-        />
       </div>
     );
   }
@@ -168,53 +174,7 @@ export default function Dashboard() {
 
       {/* QR Code */}
       {bot.status === 'active' && (
-        <Card className="border-0 shadow-md">
-          <CardHeader className="bg-white rounded-t-lg">
-            <CardTitle className="flex items-center gap-2 text-gray-800">
-              <QrCode size={20} className="text-blue-600" />
-              QR Code para Conectar
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="bg-white rounded-b-lg">
-            <div className="flex flex-col items-center gap-4">
-              {loadingQRCode ? (
-                <div className="flex flex-col items-center gap-2">
-                  <SpinnerGap size={24} className="animate-spin text-blue-600" />
-                  <p className="text-gray-600 text-center">
-                    Gerando QR Code...
-                  </p>
-                </div>
-              ) : qrCode ? (
-                <>
-                  <div className="bg-white p-4 rounded-lg shadow">
-                    <img 
-                      src={qrCode.startsWith('data:') ? qrCode : `data:image/png;base64,${qrCode}`}
-                      alt="QR Code para conexão do WhatsApp"
-                      className="w-64 h-64 object-contain mx-auto"
-                      style={{ 
-                        maxWidth: '100%',
-                        height: 'auto',
-                        backgroundColor: 'white'
-                      }}
-                    />
-                  </div>
-                  <div className="text-center space-y-2">
-                    <p className="text-gray-600">
-                      Escaneie este QR Code com o WhatsApp para conectar seu bot
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      Se o QR Code expirar ou der erro ao escanear, aguarde que um novo será gerado automaticamente
-                    </p>
-                  </div>
-                </>
-              ) : (
-                <p className="text-gray-600 text-center">
-                  Aguarde alguns segundos para o QR Code aparecer...
-                </p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+        <QRCodeCard qrCode={qrCode} loading={loadingQRCode} />
       )}
     </div>
   );

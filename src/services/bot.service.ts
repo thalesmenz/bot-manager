@@ -2,10 +2,7 @@ import api from './api';
 import { AxiosError } from 'axios';
 
 export interface BotData {
-  name: string;
-  personality?: string;
-  objectives?: string;
-  training_key?: string;
+  status?: 'active' | 'inactive';
 }
 
 export interface Bot extends BotData {
@@ -17,9 +14,7 @@ export interface Bot extends BotData {
 }
 
 export interface QRCodeResponse {
-  qrcode?: string;
-  status?: 'waiting';
-  message?: string;
+  qrcode: string;
 }
 
 export interface BotStatus {
@@ -29,8 +24,8 @@ export interface BotStatus {
 }
 
 class BotService {
-  async createBot(data: BotData): Promise<Bot> {
-    const response = await api.post<Bot>('/api/bots', data);
+  async createBot(): Promise<Bot> {
+    const response = await api.post<Bot>('/api/bots');
     return response.data;
   }
 
@@ -92,26 +87,6 @@ class BotService {
       return response.data;
     } catch (error) {
       console.error('Erro ao obter QR code:', error);
-      throw error;
-    }
-  }
-
-  async updateBotObjectives(objectives: string) {
-    try {
-      const response = await api.put('/bot/objectives', { objectives });
-      return response.data;
-    } catch (error) {
-      console.error('Erro ao atualizar objetivos do bot:', error);
-      throw error;
-    }
-  }
-
-  async updateBotTrainingKey(trainingKey: string) {
-    try {
-      const response = await api.put('/bot/training-key', { trainingKey });
-      return response.data;
-    } catch (error) {
-      console.error('Erro ao atualizar chave de treinamento:', error);
       throw error;
     }
   }

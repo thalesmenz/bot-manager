@@ -1,6 +1,5 @@
 export interface Bot {
   id: string;
-  name: string;
   status: 'active' | 'inactive';
   user_id: string;
   created_at: string;

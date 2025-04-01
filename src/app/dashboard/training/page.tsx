@@ -5,8 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
-import { Robot, Brain, SpinnerGap } from '@phosphor-icons/react';
+import { Brain, SpinnerGap } from '@phosphor-icons/react';
 import { botService } from '@/services/bot.service';
 import { authService } from '@/services/auth.service';
 
@@ -15,8 +14,6 @@ export default function Training() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [objectives, setObjectives] = useState('');
-  const [trainingKey, setTrainingKey] = useState('');
   const [trainingData, setTrainingData] = useState('');
 
   useEffect(() => {
@@ -34,11 +31,7 @@ export default function Training() {
   const loadBot = async () => {
     try {
       setLoading(true);
-      const bot = await botService.getBot();
-      if (bot) {
-        setObjectives(bot.objectives || '');
-        setTrainingKey(bot.training_key || '');
-      }
+      await botService.getBot();
     } catch (err) {
       setError('Erro ao carregar informações do bot');
       console.error('Erro ao carregar bot:', err);
@@ -50,24 +43,7 @@ export default function Training() {
   const handleSave = async () => {
     try {
       setSaving(true);
-      const bot = await botService.getBot();
-      if (!bot) {
-        setError('Bot não encontrado');
-        return;
-      }
-
-      // Atualiza os objetivos
-      if (objectives !== bot.objectives) {
-        await botService.updateBotObjectives(objectives);
-      }
-
-      // Atualiza a chave de treinamento
-      if (trainingKey !== bot.training_key) {
-        await botService.updateBotTrainingKey(trainingKey);
-      }
-
       // TODO: Implementar o envio dos dados de treinamento
-      
       router.push('/dashboard');
     } catch (err) {
       setError('Erro ao salvar informações');
@@ -100,32 +76,6 @@ export default function Training() {
               {error}
             </div>
           )}
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">Objetivos do Bot</label>
-            <Textarea
-              placeholder="Descreva os objetivos principais do seu bot..."
-              value={objectives}
-              onChange={(e) => setObjectives(e.target.value)}
-              className="min-h-[100px]"
-            />
-            <p className="text-sm text-gray-500">
-              Defina claramente o que você quer que seu bot faça e como ele deve se comportar.
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">Chave de Treinamento</label>
-            <Input
-              type="text"
-              placeholder="Insira sua chave de API para treinamento..."
-              value={trainingKey}
-              onChange={(e) => setTrainingKey(e.target.value)}
-            />
-            <p className="text-sm text-gray-500">
-              Esta chave é necessária para treinar seu bot usando IA.
-            </p>
-          </div>
 
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700">Dados de Treinamento</label>
