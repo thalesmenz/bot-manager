@@ -17,7 +17,8 @@ import {
   Users, 
   Activity,
   ArrowUpRight,
-  ArrowDownRight
+  ArrowDownRight,
+  Sparkle
 } from 'lucide-react';
 
 export default function Dashboard() {
@@ -109,7 +110,7 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Loader2 size={32} className="animate-spin text-primary" />
+        <Loader2 size={32} className="animate-spin text-blue-500" />
       </div>
     );
   }
@@ -117,7 +118,7 @@ export default function Dashboard() {
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
-        <p className="text-destructive font-medium">{error}</p>
+        <p className="text-red-500 font-medium">{error}</p>
       </div>
     );
   }
@@ -125,24 +126,26 @@ export default function Dashboard() {
   if (!bot) {
     return (
       <div className="container mx-auto p-6 min-h-screen">
-        <Card className="max-w-2xl mx-auto glass-effect card-hover">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-primary">
-              <BotIcon size={24} className="text-primary" />
-              Bem-vindo ao MyBots
-            </CardTitle>
+        <Card className="max-w-2xl mx-auto card-dark p-8 rounded-2xl animate-fade-in">
+          <CardHeader className="text-center">
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <Sparkle className="w-8 h-8 text-blue-500" />
+              <CardTitle className="text-3xl font-extrabold text-white">
+                Bem-vindo ao MyBot
+              </CardTitle>
+            </div>
           </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground mb-6">
+          <CardContent className="text-center">
+            <p className="text-gray-400 mb-8">
               Você ainda não tem um bot configurado. Crie seu primeiro bot para começar!
             </p>
             <Button 
               onClick={handleCreateBot}
               disabled={loading}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground hover-glow"
+              className="btn-primary px-8 py-6 text-lg font-medium"
             >
               {loading ? (
-                <Loader2 size={16} className="animate-spin mr-2" />
+                <Loader2 size={20} className="animate-spin mr-2" />
               ) : null}
               Criar Bot
             </Button>
@@ -153,30 +156,33 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto p-6 space-y-8">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-primary">Dashboard</h1>
-          <p className="text-muted-foreground">Bem-vindo de volta!</p>
+          <div className="flex items-center gap-2 mb-2">
+            <Sparkle className="w-6 h-6 text-blue-500" />
+            <h1 className="text-3xl font-bold text-white">Dashboard</h1>
+          </div>
+          <p className="text-gray-400">Bem-vindo de volta!</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
           <Button
             variant="outline"
             onClick={() => router.push('/dashboard/training')}
-            className="btn-outline"
+            className="btn-outline px-6 py-2"
           >
-            <Brain className="w-4 h-4 mr-2" />
+            <Brain className="w-5 h-5 mr-2" />
             Treinar Bot
           </Button>
           <Button
             variant={bot.status === 'active' ? 'destructive' : 'default'}
             onClick={handleToggleBotStatus}
             disabled={loading}
-            className={bot.status === 'active' ? 'btn-destructive' : 'btn-primary'}
+            className={`px-6 py-2 ${bot.status === 'active' ? 'btn-destructive' : 'btn-primary'}`}
           >
             {loading ? (
-              <Loader2 size={16} className="animate-spin" />
+              <Loader2 size={20} className="animate-spin" />
             ) : bot.status === 'active' ? (
               'Desativar Bot'
             ) : (
@@ -187,78 +193,77 @@ export default function Dashboard() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="card-dark glass-effect card-hover">
-          <CardContent className="p-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card className="card-dark p-6 rounded-xl hover:bg-gray-800/80 transition-all duration-300">
+          <CardContent className="p-0">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Usuários Ativos</p>
-                <p className="text-2xl font-bold text-primary">1,234</p>
-                <div className="flex items-center text-green-500 text-sm mt-1">
+                <p className="text-sm text-gray-400">Usuários Ativos</p>
+                <p className="text-2xl font-bold text-white mt-1">1,234</p>
+                <div className="flex items-center text-green-500 text-sm mt-2">
                   <ArrowUpRight className="w-4 h-4 mr-1" />
                   +12.5%
                 </div>
               </div>
-              <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
-                <Users className="w-6 h-6 text-primary" />
+              <div className="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center">
+                <Users className="w-6 h-6 text-blue-500" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="card-dark glass-effect card-hover">
-          <CardContent className="p-6">
+        <Card className="card-dark p-6 rounded-xl hover:bg-gray-800/80 transition-all duration-300">
+          <CardContent className="p-0">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Mensagens Hoje</p>
-                <p className="text-2xl font-bold text-primary">8,567</p>
-                <div className="flex items-center text-green-500 text-sm mt-1">
+                <p className="text-sm text-gray-400">Mensagens Hoje</p>
+                <p className="text-2xl font-bold text-white mt-1">8,567</p>
+                <div className="flex items-center text-green-500 text-sm mt-2">
                   <ArrowUpRight className="w-4 h-4 mr-1" />
                   +8.2%
                 </div>
               </div>
-              <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
-                <MessageSquare className="w-6 h-6 text-primary" />
+              <div className="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center">
+                <MessageSquare className="w-6 h-6 text-blue-500" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="card-dark glass-effect card-hover">
-          <CardContent className="p-6">
+        <Card className="card-dark p-6 rounded-xl hover:bg-gray-800/80 transition-all duration-300">
+          <CardContent className="p-0">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Taxa de Resposta</p>
-                <p className="text-2xl font-bold text-primary">98.5%</p>
-                <div className="flex items-center text-red-500 text-sm mt-1">
+                <p className="text-sm text-gray-400">Taxa de Resposta</p>
+                <p className="text-2xl font-bold text-white mt-1">98.5%</p>
+                <div className="flex items-center text-red-500 text-sm mt-2">
                   <ArrowDownRight className="w-4 h-4 mr-1" />
                   -0.5%
                 </div>
               </div>
-              <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
-                <Activity className="w-6 h-6 text-primary" />
+              <div className="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center">
+                <Activity className="w-6 h-6 text-blue-500" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="card-dark glass-effect card-hover">
-          <CardContent className="p-6">
+        <Card className="card-dark p-6 rounded-xl hover:bg-gray-800/80 transition-all duration-300">
+          <CardContent className="p-0">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Status do Bot</p>
-                <p className="text-2xl font-bold text-primary">
+                <p className="text-sm text-gray-400">Status do Bot</p>
+                <p className="text-2xl font-bold text-white mt-1">
                   {bot.status === 'active' ? 'Ativo' : 'Inativo'}
                 </p>
-                <Badge 
-                  variant={bot.status === 'active' ? 'default' : 'destructive'}
-                  className="mt-1"
-                >
-                  {bot.status === 'active' ? 'Online' : 'Offline'}
-                </Badge>
+                <div className="flex items-center text-sm mt-2">
+                  <Badge variant={bot.status === 'active' ? 'default' : 'secondary'}>
+                    {bot.status === 'active' ? 'Online' : 'Offline'}
+                  </Badge>
+                </div>
               </div>
-              <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
-                <BotIcon className="w-6 h-6 text-primary" />
+              <div className="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center">
+                <BotIcon className="w-6 h-6 text-blue-500" />
               </div>
             </div>
           </CardContent>
@@ -269,37 +274,22 @@ export default function Dashboard() {
       <Modal
         isOpen={showQRModal}
         onClose={() => setShowQRModal(false)}
-        title="Conecte seu WhatsApp"
+        title="Escaneie o QR Code"
       >
-        <div className="flex flex-col items-center space-y-4">
-          <div className="w-64 h-64 bg-white p-4 rounded-lg">
-            {loadingQRCode ? (
-              <div className="w-full h-full flex items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-primary" />
-              </div>
-            ) : qrCode ? (
-              <img
-                src={qrCode}
-                alt="QR Code para conexão do WhatsApp"
-                className="w-full h-full"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                QR Code não disponível
-              </div>
-            )}
-          </div>
-          <p className="text-sm text-muted-foreground text-center">
-            Abra o WhatsApp no seu celular e escaneie o QR Code para conectar seu bot
-          </p>
-          <Button
-            onClick={() => setShowQRModal(false)}
-            className="w-full btn-primary"
-          >
-            Fechar
-          </Button>
+        <div className="p-6 text-center">
+          {loadingQRCode ? (
+            <Loader2 size={32} className="animate-spin text-blue-500 mx-auto" />
+          ) : qrCode ? (
+            <img
+              src={qrCode}
+              alt="QR Code"
+              className="mx-auto rounded-lg shadow-lg"
+            />
+          ) : (
+            <p className="text-gray-400">QR Code não disponível</p>
+          )}
         </div>
       </Modal>
     </div>
   );
-} 
+}

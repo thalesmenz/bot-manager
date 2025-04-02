@@ -1,23 +1,23 @@
 @import "tailwindcss";
 
 :root {
-  --background: #1a1f2e;
-  --foreground: #ffffff;
-  --primary: #5865f2;
+  --background: #0f172a;
+  --foreground: #f8fafc;
+  --primary: #3b82f6;
   --primary-foreground: #ffffff;
-  --secondary: #1e2433;
+  --secondary: #1e293b;
   --secondary-foreground: #ffffff;
-  --accent: #1e2433;
+  --accent: #2563eb;
   --accent-foreground: #ffffff;
-  --destructive: #ed4245;
+  --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --muted: #1e2433;
-  --muted-foreground: #b9bbbe;
-  --card: #1e2433;
+  --muted: #1e293b;
+  --muted-foreground: #94a3b8;
+  --card: #1e293b;
   --card-foreground: #ffffff;
-  --border: #2a3347;
-  --input: #2a3347;
-  --ring: #5865f2;
+  --border: #334155;
+  --input: #334155;
+  --ring: #3b82f6;
 }
 
 @theme inline {
@@ -29,94 +29,191 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #1a1f2e;
-    --foreground: #ffffff;
+    --background: #0f172a;
+    --foreground: #f8fafc;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
 }
 
 /* Utilitários personalizados */
 .glass-effect {
-  background: rgba(30, 36, 51, 0.7);
-  backdrop-filter: blur(10px);
+  background: rgba(30, 41, 59, 0.7);
+  backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.2);
 }
 
 .hover-glow:hover {
-  box-shadow: 0 0 15px rgba(88, 101, 242, 0.5);
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
 }
 
 .card-hover {
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .card-hover:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.3);
 }
 
 /* Estilos personalizados para botões */
 .btn-primary {
-  background: linear-gradient(135deg, #5865f2 0%, #4752c4 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   color: white;
   border: none;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: 500;
 }
 
 .btn-primary:hover {
-  background: linear-gradient(135deg, #4752c4 0%, #3c45a5 100%);
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(88, 101, 242, 0.3);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
 }
 
 .btn-destructive {
-  background: linear-gradient(135deg, #ed4245 0%, #d83c3e 100%);
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   color: white;
   border: none;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: 500;
 }
 
 .btn-destructive:hover {
-  background: linear-gradient(135deg, #d83c3e 0%, #c03537 100%);
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(237, 66, 69, 0.3);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
 }
 
 .btn-outline {
   border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(30, 36, 51, 0.5);
+  background: rgba(30, 41, 59, 0.5);
   color: #ffffff;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: 500;
 }
 
 .btn-outline:hover {
-  background: rgba(30, 36, 51, 0.8);
+  background: rgba(30, 41, 59, 0.8);
   border-color: rgba(255, 255, 255, 0.2);
   transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 /* Estilos para cards */
 .card-dark {
-  background: rgba(30, 36, 51, 0.7);
+  background: rgba(30, 41, 59, 0.7);
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border-radius: 0.75rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-dark:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.2);
 }
 
 /* Estilos para badges */
 .badge-primary {
-  background: rgba(88, 101, 242, 0.2);
-  color: #7289da;
-  border: 1px solid rgba(88, 101, 242, 0.3);
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 9999px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
 }
 
 .badge-destructive {
-  background: rgba(237, 66, 69, 0.2);
-  color: #ed4245;
-  border: 1px solid rgba(237, 66, 69, 0.3);
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 9999px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* Animações */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient 3s ease infinite;
+}
+
+/* Efeitos de hover personalizados */
+.hover-scale {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-scale:hover {
+  transform: scale(1.05);
+}
+
+.hover-lift {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+}
+
+/* Scrollbar personalizada */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(30, 41, 59, 0.5);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.5);
+  border-radius: 4px;
+  transition: background 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(59, 130, 246, 0.7);
+}
+
+/* Seleção de texto personalizada */
+::selection {
+  background: rgba(59, 130, 246, 0.3);
+  color: #ffffff;
 }
