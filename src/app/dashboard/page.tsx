@@ -60,13 +60,16 @@ export default function Dashboard() {
     try {
       setLoadingQRCode(true);
       const qrCodeData = await botService.getQRCode();
-      setQrCode(qrCodeData.qrcode || null);
-      if (qrCodeData.qrcode && !hasShownQR) {
-        setShowQRModal(true);
-        setHasShownQR(true);
+      if (qrCodeData.qrcode) {
+        setQrCode(qrCodeData.qrcode);
+      } else {
+        // Se não conseguir o QR code, tenta novamente após 5 segundos
+        setTimeout(loadQRCode, 5000);
       }
     } catch (err) {
       console.error('Erro ao carregar QR code:', err);
+      // Em caso de erro, tenta novamente após 5 segundos
+      setTimeout(loadQRCode, 5000);
     } finally {
       setLoadingQRCode(false);
     }
@@ -82,9 +85,45 @@ export default function Dashboard() {
       setBot(updatedBot);
       
       if (newStatus === 'active') {
-        loadQRCode();
+        // Mostra o modal imediatamente
+        setShowQRModal(true);
+        setLoadingQRCode(true);
+        setQrCode(null); // Limpa o QR code anterior
+        
+        // Aguarda um momento antes de carregar o novo QR code
+        setTimeout(async () => {
+          try {
+            // Tenta obter o QR code várias vezes
+            let attempts = 0;
+            const maxAttempts = 10; // Tenta por 50 segundos (5 segundos * 10 tentativas)
+            
+            const tryGetQRCode = async () => {
+              const qrCodeData = await botService.getQRCode();
+              if (qrCodeData.qrcode) {
+                setQrCode(qrCodeData.qrcode);
+                setLoadingQRCode(false);
+                return true;
+              }
+              
+              attempts++;
+              if (attempts < maxAttempts) {
+                setTimeout(tryGetQRCode, 5000);
+                return false;
+              }
+              
+              setLoadingQRCode(false);
+              return false;
+            };
+            
+            await tryGetQRCode();
+          } catch (err) {
+            console.error('Erro ao carregar QR code:', err);
+            setLoadingQRCode(false);
+          }
+        }, 5000); // Aguarda 5 segundos antes de começar a tentar
       } else {
         setQrCode(null);
+        setShowQRModal(false);
       }
     } catch (err) {
       setError('Erro ao alterar status do bot');
@@ -276,17 +315,32 @@ export default function Dashboard() {
         onClose={() => setShowQRModal(false)}
         title="Escaneie o QR Code"
       >
-        <div className="p-6 text-center">
+        <div className="flex flex-col items-center justify-center p-6">
           {loadingQRCode ? (
-            <Loader2 size={32} className="animate-spin text-blue-500 mx-auto" />
+            <div className="flex flex-col items-center gap-4">
+              <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+              <p className="text-zinc-400">Gerando QR Code...</p>
+              <p className="text-sm text-zinc-500">Por favor, aguarde enquanto preparamos seu QR Code</p>
+            </div>
           ) : qrCode ? (
-            <img
-              src={qrCode}
-              alt="QR Code"
-              className="mx-auto rounded-lg shadow-lg"
-            />
+            <div className="flex flex-col items-center gap-4">
+              <div className="p-4 bg-white rounded-lg">
+                <img src={qrCode} alt="QR Code" className="w-64 h-64" />
+              </div>
+              <p className="text-zinc-400 text-center">
+                Escaneie o QR Code com seu WhatsApp para conectar o bot
+              </p>
+            </div>
           ) : (
-            <p className="text-gray-400">QR Code não disponível</p>
+            <div className="flex flex-col items-center gap-4">
+              <p className="text-red-400">Erro ao gerar QR Code</p>
+              <Button
+                onClick={loadQRCode}
+                className="bg-blue-500 hover:bg-blue-600 text-white"
+              >
+                Tentar Novamente
+              </Button>
+            </div>
           )}
         </div>
       </Modal>

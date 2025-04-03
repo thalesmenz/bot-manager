@@ -1,181 +1,278 @@
-'use client'
+'use client';
 
-import { useState } from 'react';
-import { Brain, Upload, FileText, Trash2, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { TrainingData } from '@/types';
+import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
+import trainingService from '@/services/training.service';
+import { botService, Bot } from '@/services/bot.service';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Loader2, Bot as BotIcon, Clock, User, Link as LinkIcon, DollarSign, Settings } from 'lucide-react';
+
+const trainingSchema = z.object({
+  botName: z.string().min(1, 'Nome do bot é obrigatório'),
+  price: z.number().min(0, 'Preço deve ser maior ou igual a 0'),
+  attendanceMode: z.string().min(1, 'Modo de atendimento é obrigatório'),
+  serviceName: z.string().min(1, 'Nome do serviço é obrigatório'),
+  actionLink: z.string().url('Link inválido'),
+  userName: z.string().min(1, 'Nome do usuário é obrigatório'),
+});
+
+type TrainingFormData = z.infer<typeof trainingSchema>;
 
 export default function TrainingPage() {
-  const [isTraining, setIsTraining] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [files, setFiles] = useState<File[]>([]);
-  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  const [training, setTraining] = useState<TrainingData | null>(null);
+  const [bot, setBot] = useState<Bot | null>(null);
+  const [isLoadingBot, setIsLoadingBot] = useState(true);
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files) {
-      setFiles(Array.from(event.target.files));
+  useEffect(() => {
+    loadBot();
+  }, []);
+
+  const loadBot = async () => {
+    try {
+      setIsLoadingBot(true);
+      const botData = await botService.getBot();
+      setBot(botData);
+      if (botData) {
+        const trainings = await trainingService.getAll(botData.id);
+        if (trainings.length > 0) {
+          setTraining(trainings[0]);
+          // Preencher o formulário com os dados existentes
+          setValue('botName', trainings[0].bot_name || '');
+          setValue('price', trainings[0].price || 0);
+          setValue('attendanceMode', trainings[0].attendance_mode || '');
+          setValue('serviceName', trainings[0].service_name || '');
+          setValue('actionLink', trainings[0].action_link || '');
+          setValue('userName', trainings[0].user_name || '');
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao carregar bot:', error);
+      toast.error('Erro ao carregar dados do bot');
+    } finally {
+      setIsLoadingBot(false);
     }
   };
 
-  const handleStartTraining = async () => {
-    setIsTraining(true);
-    // Simular progresso do treinamento
-    for (let i = 0; i <= 100; i += 10) {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setProgress(i);
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+    setValue,
+  } = useForm<TrainingFormData>({
+    resolver: zodResolver(trainingSchema),
+  });
+
+  const onSubmit = async (data: TrainingFormData) => {
+    if (!training?.id || !bot?.id) {
+      toast.error('Treinamento não encontrado');
+      return;
     }
-    setIsTraining(false);
+
+    try {
+      setIsLoading(true);
+      const response = await trainingService.update(training.id, {
+        bot_name: data.botName,
+        price: data.price,
+        attendance_mode: data.attendanceMode,
+        service_name: data.serviceName,
+        action_link: data.actionLink,
+        user_name: data.userName
+      });
+      
+      // Atualiza o estado com os novos dados
+      setTraining({
+        ...response,
+        bot_name: data.botName,
+        price: data.price,
+        attendance_mode: data.attendanceMode,
+        service_name: data.serviceName,
+        action_link: data.actionLink,
+        user_name: data.userName
+      });
+      
+      toast.success('Treinamento atualizado com sucesso!');
+    } catch (error: any) {
+      if (error.response?.status === 401) {
+        router.push('/login');
+        return;
+      }
+      toast.error(error.response?.data?.error || 'Erro ao atualizar treinamento');
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  if (isLoadingBot) {
+    return (
+      <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+      </div>
+    );
+  }
+
+  if (!bot) {
+    return (
+      <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-zinc-100 mb-4">Nenhum bot encontrado</h2>
+          <p className="text-zinc-400">Crie um bot primeiro para configurar o treinamento</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-primary">Treinamento do Bot</h1>
-          <p className="text-muted-foreground">Treine seu bot com dados personalizados</p>
-        </div>
-        <Button
-          onClick={handleStartTraining}
-          disabled={isTraining || files.length === 0}
-          className="bg-primary hover:bg-primary/90 text-primary-foreground hover-glow"
-        >
-          {isTraining ? (
-            <div className="flex items-center">
-              <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin mr-2" />
-              Treinando... {progress}%
-            </div>
-          ) : (
-            <>
-              <Brain className="w-4 h-4 mr-2" />
-              Iniciar Treinamento
-            </>
-          )}
-        </Button>
-      </div>
-
-      {/* Upload Section */}
-      <Card className="card-dark glass-effect card-hover">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-primary">
-            <Upload className="w-5 h-5" />
-            Upload de Dados
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
-              <input
-                type="file"
-                multiple
-                onChange={handleFileUpload}
-                className="hidden"
-                id="file-upload"
-              />
-              <label
-                htmlFor="file-upload"
-                className="cursor-pointer flex flex-col items-center"
-              >
-                <Upload className="w-12 h-12 text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">
-                  Arraste e solte seus arquivos aqui ou{' '}
-                  <span className="text-primary">clique para selecionar</span>
-                </p>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Formatos suportados: PDF, TXT, DOCX
-                </p>
-              </label>
-            </div>
-
-            {files.length > 0 && (
-              <div className="space-y-2">
-                <h3 className="text-sm font-medium text-muted-foreground">
-                  Arquivos selecionados ({files.length})
-                </h3>
-                <div className="space-y-2">
-                  {files.map((file, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-3 bg-accent rounded-lg"
-                    >
-                      <div className="flex items-center gap-3">
-                        <FileText className="w-5 h-5 text-muted-foreground" />
-                        <div>
-                          <p className="text-sm font-medium text-foreground">
-                            {file.name}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {(file.size / 1024).toFixed(2)} KB
-                          </p>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => setFiles(files.filter((_, i) => i !== index))}
-                        className="p-1 hover:bg-destructive/10 rounded-full text-destructive"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
+    <div className="h-[calc(100vh-4rem)] overflow-auto">
+      <div className="container mx-auto px-4 py-6">
+        <div className="max-w-5xl mx-auto">
+          {/* Header com Status do Bot */}
+          <div className="bg-zinc-800 rounded-lg p-6 mb-6 border border-zinc-700">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-blue-500/10 rounded-lg">
+                  <BotIcon className="h-6 w-6 text-blue-500" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold text-zinc-100">Treinamento do Bot</h1>
+                  <p className="text-zinc-400">Configure as respostas e comportamentos do seu bot</p>
                 </div>
               </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Training Status */}
-      <Card className="card-dark glass-effect card-hover">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-primary">
-            <Brain className="w-5 h-5" />
-            Status do Treinamento
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
-                <CheckCircle2 className="w-6 h-6 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-medium text-foreground">Último Treinamento</h3>
-                <p className="text-sm text-muted-foreground">
-                  Concluído em 15/03/2024 às 14:30
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-accent flex items-center justify-center">
-                <AlertCircle className="w-6 h-6 text-muted-foreground" />
-              </div>
-              <div>
-                <h3 className="font-medium text-foreground">Próximo Treinamento</h3>
-                <p className="text-sm text-muted-foreground">
-                  Agendado para 20/03/2024 às 00:00
-                </p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-3 gap-4">
-              <div className="p-4 bg-accent rounded-lg">
-                <p className="text-sm text-muted-foreground">Dados Processados</p>
-                <p className="text-2xl font-bold text-primary">1.2GB</p>
-              </div>
-              <div className="p-4 bg-accent rounded-lg">
-                <p className="text-sm text-muted-foreground">Tempo Médio</p>
-                <p className="text-2xl font-bold text-primary">45min</p>
-              </div>
-              <div className="p-4 bg-accent rounded-lg">
-                <p className="text-sm text-muted-foreground">Precisão</p>
-                <p className="text-2xl font-bold text-primary">98%</p>
-              </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
+
+          {/* Formulário de Treinamento */}
+          <Card className="p-6 mb-6 bg-zinc-800 border-zinc-700">
+            <div className="flex items-center gap-2 mb-6">
+              <Settings className="h-5 w-5 text-blue-500" />
+              <h2 className="text-xl font-semibold text-zinc-100">Configurações do Treinamento</h2>
+            </div>
+            
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="botName" className="text-zinc-300">Nome do Bot</Label>
+                  <Input
+                    id="botName"
+                    {...register('botName')}
+                    placeholder="Nome do bot"
+                    className="bg-zinc-900 border-zinc-700 text-zinc-100"
+                  />
+                  {errors.botName && (
+                    <p className="text-sm text-red-400">{errors.botName.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="price" className="text-zinc-300">Preço do Serviço</Label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-500 h-4 w-4" />
+                    <Input
+                      id="price"
+                      type="number"
+                      {...register('price', { valueAsNumber: true })}
+                      placeholder="0.00"
+                      className="pl-9 bg-zinc-900 border-zinc-700 text-zinc-100"
+                    />
+                  </div>
+                  {errors.price && (
+                    <p className="text-sm text-red-400">{errors.price.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="attendanceMode" className="text-zinc-300">Modo de Atendimento</Label>
+                  <div className="relative">
+                    <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-500 h-4 w-4" />
+                    <Input
+                      id="attendanceMode"
+                      {...register('attendanceMode')}
+                      placeholder="Ex: 24h, 8h, etc"
+                      className="pl-9 bg-zinc-900 border-zinc-700 text-zinc-100"
+                    />
+                  </div>
+                  {errors.attendanceMode && (
+                    <p className="text-sm text-red-400">{errors.attendanceMode.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="serviceName" className="text-zinc-300">Nome do Serviço</Label>
+                  <Input
+                    id="serviceName"
+                    {...register('serviceName')}
+                    placeholder="Ex: Suporte Técnico"
+                    className="bg-zinc-900 border-zinc-700 text-zinc-100"
+                  />
+                  {errors.serviceName && (
+                    <p className="text-sm text-red-400">{errors.serviceName.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="actionLink" className="text-zinc-300">Link de Ação</Label>
+                  <div className="relative">
+                    <LinkIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-500 h-4 w-4" />
+                    <Input
+                      id="actionLink"
+                      {...register('actionLink')}
+                      placeholder="https://..."
+                      className="pl-9 bg-zinc-900 border-zinc-700 text-zinc-100"
+                    />
+                  </div>
+                  {errors.actionLink && (
+                    <p className="text-sm text-red-400">{errors.actionLink.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="userName" className="text-zinc-300">Nome do Atendente</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-500 h-4 w-4" />
+                    <Input
+                      id="userName"
+                      {...register('userName')}
+                      placeholder="Nome do atendente"
+                      className="pl-9 bg-zinc-900 border-zinc-700 text-zinc-100"
+                    />
+                  </div>
+                  {errors.userName && (
+                    <p className="text-sm text-red-400">{errors.userName.message}</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex justify-end">
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="bg-blue-500 hover:bg-blue-600 text-white"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Salvando...
+                    </>
+                  ) : (
+                    'Salvar Alterações'
+                  )}
+                </Button>
+              </div>
+            </form>
+          </Card>
+        </div>
+      </div>
     </div>
   );
-} 
+}

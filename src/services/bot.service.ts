@@ -32,7 +32,10 @@ class BotService {
   async getBot(): Promise<Bot | null> {
     try {
       const response = await api.get<Bot[]>('/api/bots');
-      return response.data[0] || null;
+      if (response.data.length === 0) {
+        return null;
+      }
+      return response.data[0];
     } catch (error) {
       console.error('Erro ao buscar bot:', error);
       if ((error as AxiosError)?.response?.status === 404) {
